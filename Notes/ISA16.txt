@@ -1,0 +1,124 @@
+ISA-16
+________________________________________________________________________________
+GPRs: r0-r16
+However:
+r0-r4 are used for syscalls
+r5-r15 are true GPRs
+________________________________________________________________________________
+Special Purpose Registers: 32 bits, lower 28 bits are active
+PC  Program Counter
+SP  Stack Pointer
+BP  frame Base Pointer
+LR  Link Register
+IV  Interrupt Vector
+IM  Interrupt mask
+I1  I/o 1
+I0  I/O 2
+
+FR  Flag Register
+fedc ba98 7654 3210
+x0  z   Zero flag: 0 if result is zero
+x1  c   Carry 
+x2  s   Sign: 1 if negetive
+x3  o   Overflow: 1 if overflow
+x4  p   Parity: 0 if even
+x5  i   interrupt enable
+x6  r   Reserved
+x7  r   Reserved
+x8  r   Reserved
+x9  r   Reserved
+xa  r   Reserved
+xb  r   Reserved
+xc  r   Reserved
+xd  r   Reserved
+xe  r   Reserved
+xf  r   Reserved
+
+CR0 Count Register, increments when activated
+TR0 Target Register, target number for Counter
+CR1 Count Register, increments when activated
+TR1 Target Register, target number for Counter
+CR2 Count Register, increments when activated
+TR2 Target Register, target number for Counter
+
+s0  PC  Program Counter
+s1  SP  Stack Pointer
+s2  FP  frame Pointer
+s3  LR  Link Register
+s7  FR  Flag Register
+________________________________________________________________________________
+instr = b1 b2 = n1 n2 n3 n4 = 0123 4567 89AB CDEF
+31 Real / 17 Virtual / 48 Total
+________________________________________
+Triple Register Instructions: 13 Real / 8 Virtual / 21 Total
+____________________
+x1  lod     LOaD indirect to reg[n2] from address (((reg[n3] << 16) & 0x000f) + reg[n4])
+x2  str     SToRe indirect from reg[n2] to address (((reg[n3] << 16) & 0x000f) + reg[n4])
+x3  slb     Set Low Byte: reg[n2] = (n2 & xff00) | b2
+x4  shb     Set High Byte: reg[n2] = (n2 & x00ff) | b2
+x5  rjp     Reletive Jump Positive based on n2-n4
+x6  rjn     Reletive Jump Negative based on n2-n4
+x7  add     reg[n2] = reg[n3] + reg[n4]
+x8  adi     reg[n2] += imm(b2)
+x9  sub     reg[n2] = reg[n3] - reg[n4]
+xa  sbi     reg[n2] -= imm(b2)
+xb  nnd     reg[n3] = ~(reg[n3] & reg[n4]) (NAND)
+xc  nor     reg[n3] = (reg[n3] | reg[n4])
+xd  xor     reg[n3] = reg[n3] XOR reg[n4] 
+
+    Triple Register Virtual Instructions
+    ____________________
+    not:    NAND or NOR gate. src1 == src2
+    buf:    2 NAND or NOR in series, src1 == src2
+    and:    2 NAND gates in series
+    orr:    2 NOR gates in series
+    xnr:    XOR and NAND/NOR (src1 == src2) in series
+    mul:    MULtiply: reg[n2] = reg[n3] * reg[n4]
+    idv:    Integer DiVision: reg[n2] = reg[n3] / reg[n4]
+    rem:    REMainder: reg[n2] = reg[n3] % reg[n4]
+
+________________________________________
+Double Register Instructions: 11 Real /0 Virtual / 11 Total
+____________________
+mov     reg[n3] = reg[n4]
+srg     Special Register Get: reg[n3] = value; n4: b3 b2 b1 b0 -> low: b3 = 0
+            high: b3 == 1; lower 3 bits specify which spr to get value from
+srs     Special Register Set: spr[n3 & 0x7] = reg[n4]; (n3 & 0x8) = high/low
+jmp     indirect JuMP to ((reg[n3] << 16) + reg[n4])
+jal     Jump And Link, aka, Call: store PC++ in LR and jump to 
+            ((reg[n3] << 16) + reg[n4])
+beq     Branch if EQual (z = 1) to ((reg[n3] << 16) + reg[n4])
+bge     Branch if Greater than or Equal (n = 0) to ((reg[n3] << 16) + reg[n4])
+ble     Branch if Less than or equal (n = 1 | z = 1) to 
+                ((reg[n3] << 16) + reg[n4])
+bne     Branch if Not EQual (z = 0) to ((reg[n3] << 16) + reg[n4])
+bgt     Branch if Greater Than (n = 0 & z = 0) to ((reg[n3] << 16) + reg[n4])
+blt     Branch if Less Than (n = 1, z = 0) to ((reg[n3] << 16) + reg[n4])
+
+________________________________________
+Single Register Instructions: 4 Real / 9 Virtual / 14 Total
+____________________
+swp     swap bytes: b1B = b2A, b2B = b1A
+psh     PuSH reg[n4] to mem[SP], SP--
+pop     POP mem[SP] to reg[n4], SP++
+lsr     Logical Shift Right: reg[n3] = reg[n4] >> 1: reg[n4] / 2
+    Single Register Virtual Instructions
+    ____________________
+    inc     INCrement: reg[n4]++ : adi rx, 1;
+    dec     DECrement reg[n4]--  : sbi rx, 1;
+    lsl     Logical Shift Left: reg[n3] = reg[n4] << 1: reg[n4] * 2
+    ssl     Signed Shift Left
+    ssr     Signed Shift Right
+    rol     ROtate Left
+    srl     Signed Rotate Left
+    ror     Rotate Right
+    srr     signed rotate right
+
+________________________________________________________________________________
+No Register Instructions: 3 Real / 0 Virtual / 2 Total
+____________________
+0x0000  cal     call a subroutine, i.e. printchar to screen buffer / getchar from buffer
+ret     Return from call using link register
+itg     Interrupt ToGgle: toggle interrupt enable
+
+opcd opcd dest src0

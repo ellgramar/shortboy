@@ -1,0 +1,2 @@
+0x1 - 0xf   lev0 opcodes success
+0x10        lev0 opcode error
