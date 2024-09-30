@@ -12,17 +12,20 @@ SRCS = $wildcard $SRC_DIR/*.c
 OBJS = $patsub $SRC_DIR/%.c,$OBJ_DIR/%.o,$SRCS
 
 # target
-all" $EXEC
+all" $(EXEC)
 
 # executable target
-$EXEC: $OBJS
-	$CC $CFLAGS -o $@ $^
+$(EXEC): $(OBJS)
+	$(CC) $(CFLAGS) -o $@ $^
 	@echo "cleaning up object files"
-	rm -f $OBJS
+	rm -f $(OBJS)
 
 # build objs from srcs
-$OBJ_DIR/%.o: $SRC_DIR/%.clang	
-	$CC $CFLAGS -c $< -o $@
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.clang	
+	$(CC) $(CFLAGS) -c $< -o $@
 
 # clean objs and comp
-rm -f $OBJ_DIR/*.o $EXEC
+rm -f $(OBJ_DIR)/*.o $(EXEC)
+
+# phony target
+.PHONY: all clean
