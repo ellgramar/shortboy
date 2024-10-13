@@ -1,0 +1,129 @@
+16 bit computer
+Non-supervisor mode
+________________________________________________________________________________
+The max reasonable memory size is 134,217,727 shorts or 2,147,483,632 bits,
+or 268,435,454 bytes. Note that because the word size is 16 bits, the memory
+is not ((2^28)-1) bytes, but rather (2*(2^27)) bytes due to the math:
+((2^27 - 1) * 16) / 8. Likewise, we are missing a short (16-bits) reletive to
+2^32 bits. However, the number of shorts is (2^27 - 1) since we are operating 
+with this as the base. This is because we need some 2^n s.t. 2^n < 2^32, i.e. 
+the number of bits in the memory space must be a power of 2, but strictly less 
+than 2^32, or alternativly, less-than-or-equal to ((2^32) - 1)
+________________________________________________________________________________
+Main Memory space is made up of 134,217,727 (0x7ffffff) locations, with each 
+    location being one short (16-bits) wide for a total of 4294967296 bits or 
+    536870912 bytes
+________________________________________________________________________________
+- The Interrupt Vector Table (IVT) file is technically 512 bits long, but only 
+    the first 28 bits of each 32-bit word are used. For a total of 16 Vectors.
+    This is a seperate memoryspace loaded in as a '.ivt' file, as part of a 
+    Unified-Computer-State (.ucsh/ucsb) file, or as 
+________________________________________________________________________________
+- The General Purpose Register (GPR) file is 256-bits long (16 shorts)
+- The Special Purpose Register (SPR) file is technically 256 bits long but only 
+    the first 28 bits of each 32-bit word are used for a total of 8 Registers
+
+________________________________________________________________________________
+There are also two buffers Input (IBUFF) and Output (OBUFF). Each one has 2048
+    chars (bytes) of space for a total of 16384 bits each (32768 combined).
+________________________________________________________________________________
+16 16-bit General Purppose Registers (GPR): r0-r15
+8 28-bit Special Purpose Registers (SPR): s0-s7
+s0  PC  Program Counter
+s1  SP  Stack Pointer
+s2  FP  frame Pointer
+s3  LR  Link Register
+s4  CR  Count Register, increments when activated
+s5  TR  Target Register, target number for Counter
+s6  RR  Reserved Register
+s7  FR  Flag Register
+        zcnv phsg wRRR RRRR RRRR RRRR iiii
+        z   Zero flag
+        c   Carry flag 
+        n   Negative flag
+        v   oVerflow flag (v because o looks like a zero)
+        p   Parity flag 
+        h   Half-carry flag
+        s   Supervisor flag: enabled in supervisor mode where s-regs are modifiable
+        g   interrupt Global flag: indicates global interrupt
+        w   Write interrupt when there is new input from terminal
+        R   reserved
+        i   Interrupt vector selection ()
+________________________________________________________________________________
+instr = r1r1 r2r2 r3r3 r4r4
+triple register instructions
+x0          Escape to double register instructions
+x1  llb     Load Low Byte of instruction into register specified in second nibble
+x2  lod     LOaD indirect to reg[nibble2] from address (((reg[nibble3] & 0x0fff) << 16) + reg[n4])
+x3  str     SToRe indirect from reg[nibble2] to address (((reg[nibble3] & 0x0fff) << 16) + reg[n4])
+x4  add     reg[r2] = reg[r3] + reg[r4]
+x5  sub     reg[r2] = reg[r3] - reg[r4]
+x6  mul     reg[r2] = reg[r3] * reg[r4]
+x7  div     reg[r2] = reg[r3] / reg[r4]
+x8  mod     reg[r2] = reg[r3] % reg[r4]
+x9  rjp     Reletive Jump Positive based on lower 12 bits
+xa  rjn     Reletive Jump Negative based on lower 12 bits
+xb  siv     Set Interrupt Value in s7 and jump to it
+xc  lhb     Load High Byte: load low byte of instruction in to the upper byte of the register specified in the second nibble
+xd          Reserved
+xe          Reserved
+xf          Reserved
+________________________________________________________________________________
+double register instructions
+x00 Escape to nibble3 opcodes
+x01 beq     Branch if EQual (z = 1) to (((reg[nibble3] & 0x0fff) << 16) + reg[nibble4])
+x02 bge     Branch if Greater than or Equal (n = 0) to (((reg[nibble3] & 0x0fff) << 16) + reg[nibble4])
+x03 ble     Branch if Less than or equal (n = 1 | z = 1) to (((reg[nibble3] & 0x0fff) << 16) + reg[nibble4])
+x04 bne     Branch if Not EQual (z = 0) to (((reg[nibble3] & 0x0fff) << 16) + reg[nibble4])
+x05 bgt     Branch if Greater Than (n = 0 & z = 0) to (((reg[nibble3] & 0x0fff) << 16) + reg[nibble4])
+x06 blt     Branch if Less Than (n = 1, z = 0) to (((reg[nibble3] & 0x0fff) << 16) + reg[nibble4])
+x07 jmp     indirect JuMP to (((reg[nibble3] & 0x0fff) << 16) + reg[nibble4])
+x08 jal     Jump And Link, aka, Call: store PC++ in LR and jump to (((reg[nibble3] & 0x0fff) << 16) + reg[nibble4])
+x09 mov     reg[nibble3] = reg[nibble4]
+x0a and     reg[r3] = reg[r3] & reg[r4]
+x0b nnd     reg[r3] = ~(reg[r3] & reg[r4]) (NAND)
+x0c orr     reg[r3] = reg[r3] | reg[r4] (OR)
+x0d nor     reg[r3] = (reg[r3] | reg[r4])
+x0e xor     reg[r3] = reg[r3] XOR reg[r4]
+x0f xnr     reg[r3] = reg[r3] XNOR reg[r4] (XNOR)
+________________________________________________________________________________
+single register instructions
+x000    Escape to no register opcodes
+x001    swp     swap bytes in register 
+x002    not     invert reg[nibble4] = ~reg[nibble4]
+x003    inc     increment
+x004    dec     decrement
+x005    ssl     Signed Shift Left
+x006    ssr     Signed Shift Right
+x007    rol     ROtate Left
+x008    srl     Signed Rotate Left
+x009    ror     Rotate Right
+x00a    srr     signed rotate right
+x00b    psh     push reg[nibble4] to address in SP and dec SP
+x00c    pop     pop mem[SP] to reg[nibble4] and inc SP
+x00d    wob     Write to Output Buffer from (reg[nibble4] & 0xff)
+x00e    rib     Read Input Buffer to reg[nibble4] (also AND reg with 0x0000 first)
+x00f    ien     interrupt enable
+________________________________________________________________________________
+x0000   nop     PC++
+x0001   ret     return from function, uses link register
+x0002   sup     enter (or exit) SUPer-user mode (can directly modify SPRs)
+x0003   psa     Push all registers to Stack r0->rf
+x0004   ppa     pop all registers from Stack from rf->r0
+x0005   pob     Push Output Buffer to screen
+x0006   zob     Zero-out Output Buffer
+x0007   pib     Pull Input Buffer from screen (computer buffer is zeroed first)
+
+x0008-x000f ien     Interrupt ENable lower 3 bits correspond to interrupts 0-7 (?)
+________________________________________________________________________________
+
+Test Chars
+0xeeff
+0b1010010101101001
+
+Print 'E' to Console from Register 1 and infinite loop afterwards
+114500d10005a001
+llb r1, 'E';    // 'E' = 0x45
+wob r1;
+pob;
+jrn 1;          // might jump back to pob which would result in continuous 'E' printed, or will infinite loop
