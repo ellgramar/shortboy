@@ -1,5 +1,4 @@
-#include <stdio.h>
-#include "../inc/univ.h"
+#include "../inc/stdinc.h"
 
 int main(int argc, char * argv[]){
     printf("test\n");
