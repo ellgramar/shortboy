@@ -3,13 +3,22 @@ ________________________________________________________________________________
 GPRs: r0-r16
 However:
 r0-r4 are used for syscalls
+r0  syscall value
+r1 input 1
+r2 input 2
+r3 output 1
+r4 output 2
 r5-r15 are true GPRs
 ________________________________________________________________________________
 Special Purpose Registers: 32 bits, lower 28 bits are active
 PC  Program Counter
+    Keeps track of program location
 SP  Stack Pointer
+    Points to lowest memory location in stack, starts with 0x0fffffff
 BP  frame Base Pointer
+    Points to base of frame, e.g. the previous lowest SP
 LR  Link Register
+    Points to Return address plus 1
 IV  Interrupt Vector
 IM  Interrupt mask
 I1  I/o 1
